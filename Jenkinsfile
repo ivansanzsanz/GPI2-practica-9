@@ -24,7 +24,7 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    sh 'npm install'
+                    sh 'npm install --force'
                 }
             }
         }

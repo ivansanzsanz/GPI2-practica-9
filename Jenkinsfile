@@ -22,12 +22,19 @@ pipeline {
         }
 
         stage('Build') {
-            steps {
-                script {
-                    sh 'npm install --force'
-                }
-            }
-        }
+			steps {
+				script {
+					// Primero intenta instalar sin --force
+					sh 'npm install'
+					
+					// Si falla, intenta con --legacy-peer-deps en lugar de --force
+					sh 'npm install --legacy-peer-deps || true'
+					
+					// Si aún hay problemas con node-sass, instala sass
+					sh 'npm uninstall node-sass && npm install sass || true'
+				}
+			}
+		}
 
         stage('Test') {
             steps {

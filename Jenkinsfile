@@ -25,7 +25,7 @@ pipeline {
 			steps {
 				script {
 					// Primero intenta instalar sin --force
-					sh 'npm install'
+					sh 'npm install --force'
 					
 					// Si falla, intenta con --legacy-peer-deps en lugar de --force
 					sh 'npm install --legacy-peer-deps || true'

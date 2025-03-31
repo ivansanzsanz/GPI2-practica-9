@@ -24,14 +24,7 @@ pipeline {
         stage('Build') {
 			steps {
 				script {
-					// Primero intenta instalar sin --force
-					sh 'npm install --force'
-					
-					// Si falla, intenta con --legacy-peer-deps en lugar de --force
-					sh 'npm install --legacy-peer-deps || true'
-					
-					// Si aún hay problemas con node-sass, instala sass
-					sh 'npm uninstall node-sass && npm install sass || true'
+					sh 'curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash'
 				}
 			}
 		}

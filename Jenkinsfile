@@ -1,38 +1,38 @@
 pipeline {
-    agent any  // Esto indica que el pipeline puede ejecutarse en cualquier agente disponible
+    agent any
 
     environment {
-        // Aquí puedes definir variables de entorno, si las necesitas
-        BRANCH_NAME = 'feature'  // Definir la rama a usar
+        BRANCH_NAME = 'feature/desarrollo-practica-9'  // Usa el nombre exacto de tu rama
+        REPO_URL = 'https://github.com/ivansanzsanz/GPI2-practica-9.git'  // Usa tu URL real
     }
 
     stages {
-        // Etapa de Checkout: obtener el código de la rama "feature"
         stage('Checkout') {
             steps {
-                script {
-                    // Realiza un checkout de la rama "feature"
-                    git branch: env.BRANCH_NAME, url: 'https://github.com/usuario/repo.git'
-                }
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: env.BRANCH_NAME]],
+                    extensions: [],
+                    userRemoteConfigs: [[
+                        url: env.REPO_URL,
+                        credentialsId: 'tus-credenciales'  // Reemplaza con el ID de tus credenciales en Jenkins
+                    ]]
+                ])
             }
         }
 
-        // Etapa de Build: compilar el proyecto
         stage('Build') {
             steps {
                 script {
-                    // Ejecuta la construcción del proyecto (ajustar el comando según el tipo de proyecto)
-                    sh 'npm install'  // Para proyectos Node.js, usa el comando adecuado según tu entorno
+                    sh 'npm install'
                 }
             }
         }
 
-        // Etapa de Testing: ejecutar las pruebas unitarias
         stage('Test') {
             steps {
                 script {
-                    // Ejecuta las pruebas del proyecto (ajustar el comando según el entorno de pruebas)
-                    sh 'npm test'  // Comando para ejecutar pruebas en un proyecto Node.js
+                    sh 'npm test'
                 }
             }
         }
@@ -40,15 +40,12 @@ pipeline {
 
     post {
         always {
-            // Este bloque se ejecuta después de la ejecución del pipeline, sin importar si tuvo éxito o no
             echo 'Pipeline completado.'
         }
         success {
-            // Este bloque se ejecuta solo si el pipeline fue exitoso
             echo 'El pipeline fue exitoso.'
         }
         failure {
-            // Este bloque se ejecuta si el pipeline falla
             echo 'El pipeline falló.'
         }
     }

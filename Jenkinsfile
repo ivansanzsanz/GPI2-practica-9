@@ -2,51 +2,51 @@ pipeline {
     agent any
 
     environment {
-        BRANCH_NAME = 'feature/desarrollo-practica-9'  // Usa el nombre exacto de tu rama
-        REPO_URL = 'https://github.com/ivansanzsanz/GPI2-practica-9.git'  // Usa tu URL real
+        DOCKER_IMAGE = "mi-aplicacion:latest"
+        K8S_NAMESPACE = "produccion"
+        DEPLOYMENT_NAME = "mi-app-deployment"
+        REGISTRY_URL = "mi-registro-docker.com"
+        REGISTRY_CREDENTIALS = "docker-credentials"
     }
 
     stages {
-        stage('Checkout') {
+        stage('Checkout Código') {
             steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: env.BRANCH_NAME]],
-                    extensions: [],
-                    userRemoteConfigs: [[
-                        url: env.REPO_URL,
-                        credentialsId: 'tus-credenciales'  // Reemplaza con el ID de tus credenciales en Jenkins
-                    ]]
-                ])
+                git branch: 'main', url: 'https://github.com/mi-org/mi-repo.git'
             }
         }
 
-        stage('Build') {
-			steps {
-				script {
-					sh 'curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash'
-				}
-			}
-		}
-
-        stage('Test') {
+        stage('Construcción y Push de Imagen Docker') {
             steps {
                 script {
-                    sh 'npm test'
+                    docker.withRegistry("https://${REGISTRY_URL}", REGISTRY_CREDENTIALS) {
+                        sh "docker build -t ${REGISTRY_URL}/${DOCKER_IMAGE} ."
+                        sh "docker push ${REGISTRY_URL}/${DOCKER_IMAGE}"
+                    }
+                }
+            }
+        }
+
+        stage('Despliegue en Kubernetes') {
+            steps {
+                script {
+                    withKubeConfig([credentialsId: 'k8s-credentials']) {
+                        sh """
+                        kubectl set image deployment/${DEPLOYMENT_NAME} \
+                        ${DEPLOYMENT_NAME}=${REGISTRY_URL}/${DOCKER_IMAGE} -n ${K8S_NAMESPACE}
+                        """
+                    }
                 }
             }
         }
     }
 
     post {
-        always {
-            echo 'Pipeline completado.'
-        }
         success {
-            echo 'El pipeline fue exitoso.'
+            echo '¡Despliegue exitoso!'
         }
         failure {
-            echo 'El pipeline falló.'
+            echo 'Hubo un error en el despliegue.'
         }
     }
 }
